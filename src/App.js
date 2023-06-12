@@ -19,8 +19,12 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true)
 
+  const [quantityPage, setQuantityPage] = useState(1)
   let quantityPhoto = 0
-  let num = 0
+
+  useEffect(() => {
+    setPage(1)
+  }, [sorting])
 
   useEffect(() => {
     setIsLoading(true)
@@ -33,15 +37,7 @@ function App() {
       .then(res => res.json())
       .then(json => {
         quantityPhoto = json.length
-        if (quantityPhoto > 3) {
-          num = 2
-        }
-
-        if (quantityPhoto > 6) {
-          num = 3
-        }
-        console.log(quantityPhoto)
-        console.log(num)
+        setQuantityPage(quantityPhoto > 6 ? 3 : quantityPhoto > 3 ? 2 : 1)
       })
 
     fetch(
@@ -50,7 +46,6 @@ function App() {
       .then(res => res.json())
       .then(json => {
         setCollection(json)
-        // console.log(json.length)
       })
       .catch(err => alert(err))
       .finally(() => setIsLoading(false))
@@ -58,65 +53,70 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Моя коллекция фотографий</h1>
-      <div className="container"></div>
-      <div className="wrapper">
-        <div className="top">
-          <ul className="tags">
-            {navigation.map((item, idx) => {
-              return (
-                <li
-                  key={idx}
-                  onClick={() => {
-                    setCatecategories(idx)
-                    setSorting(idx)
-                  }}
-                  className={categories === idx ? 'active' : ''}
-                >
-                  {item.name}
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-        <div className="content">
-          <input
-            value={searchValue}
-            onChange={e => setSearchValue(e.target.value)}
-            className="search-input"
-            placeholder="Поиск по названию..."
-          />
-          <div className="content__box">
-            {isLoading ? (
-              <div className="loading">Идет загрузка ...</div>
-            ) : (
-              collection
-                .filter(obj => {
-                  return obj.name
-                    .toLowerCase()
-                    .includes(searchValue.toLowerCase())
-                })
-                .map((obj, i) => {
+      <div className="container">
+        <h1>Коллекция фотографий</h1>
+        <div className="wrapper">
+          <div className="top">
+            <ul className="tags">
+              {navigation.map((item, idx) => {
+                return (
+                  <li
+                    key={idx}
+                    onClick={() => {
+                      setCatecategories(idx)
+                      setSorting(idx)
+                    }}
+                    className={categories === idx ? 'active' : ''}
+                  >
+                    {item.name}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+          <div className="content">
+            <input
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              className="search-input"
+              placeholder="Поиск по названию..."
+            />
+            <div className="content__box">
+              {isLoading ? (
+                <div className="loading">Идет загрузка ...</div>
+              ) : (
+                collection
+                  .filter(obj => {
+                    return obj.name
+                      .toLowerCase()
+                      .includes(searchValue.toLowerCase())
+                  })
+                  .map((obj, i) => {
+                    return (
+                      <Collection key={i} name={obj.name} images={obj.photos} />
+                    )
+                  })
+              )}
+            </div>
+
+            <ul className="pagination">
+              {isLoading ? (
+                <div className="loading">Идет загрузка ...</div>
+              ) : (
+                [...Array(quantityPage)].map((_, id) => {
                   return (
-                    <Collection key={i} name={obj.name} images={obj.photos} />
+                    <li
+                      key={id}
+                      className={id + 1 === page ? 'active' : ''}
+                      onClick={() => setPage(id + 1)}
+                    >
+                      {id + 1}
+                    </li>
                   )
                 })
-            )}
+              )}
+            </ul>
           </div>
-
-          <ul className="pagination">
-            {[...Array(num)].map((_, id) => {
-              return (
-                <li
-                  key={id}
-                  className={id + 1 === page ? 'active' : ''}
-                  onClick={() => setPage(id + 1)}
-                >
-                  {id + 1}
-                </li>
-              )
-            })}
-          </ul>
         </div>
       </div>
     </div>
